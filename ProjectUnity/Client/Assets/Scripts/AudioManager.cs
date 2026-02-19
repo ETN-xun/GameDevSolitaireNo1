@@ -19,7 +19,8 @@ public class AudioManager : MonoBehaviour
 	public void Play(AudioClip audioClip, Action a = null)
 	{
 		if (audioClip == null) { return; }
-		AudioSource audio = audios[index];
+
+        AudioSource audio = audios[index];
 		if (audioList.Contains(audio))
 		{
 			int index = audioList.IndexOf(audio);
@@ -42,7 +43,8 @@ public class AudioManager : MonoBehaviour
 	{
 		AudioClip audioClip = Resources.Load<AudioClip>(name);
 		if (audioClip == null) { return; }
-		AudioSource audio = audios[index];
+
+        AudioSource audio = audios[index];
 		if (audioList.Contains(audio))
 		{
 			int index = audioList.IndexOf(audio);

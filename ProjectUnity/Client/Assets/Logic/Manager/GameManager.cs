@@ -35,10 +35,23 @@ namespace RG.Zeluda
 				LevelManager levelManager = CBus.Instance.GetManager(ManagerName.LevelManager) as LevelManager;
 				levelManager.OnExpChanged += (c, m) =>
 				{
-					main.lbl_lv.text = $"Lv.{levelManager.Level}";
-					main.img_exp.fillAmount = c*1f / m;
+	
+					main.img_exp.fillAmount = c * 1f / m;
+                    main.text_exp.text = $"{c}/{m}";
+                };
+				levelManager.OnLevelUp += (l) =>
+				{
+                    main.lbl_lv.text = $"Lv.{l}";
+                    if (l == 2 || l == 3 || l == 5 || l == 7)
+					{
+
+                        TipManager.Tip("马儿学会了新的技能！");
+                    }
 				};
-				main.SetTime(time);
+                AssetManager am = CBus.Instance.GetManager(ManagerName.AssetManager) as AssetManager;
+                am.Add(1100003, 3);
+                levelManager.updateexp();
+                main.SetTime(time);
 				main.InitClock();
 				GroundManager gm = CBus.Instance.GetManager(ManagerName.GroundManager) as GroundManager;
 				gm.BuildGround(9);
@@ -124,6 +137,11 @@ namespace RG.Zeluda
 					//	UIManager um2 = CBus.Instance.GetManager(ManagerName.UIManager) as UIManager;
 					//	VideoPanel video = um2.OpenPanel("VideoPanel") as VideoPanel;
 					//}
+					if (day == 2)
+					{
+						main.ismatchlocked = true;
+						TipManager.Tip("赛马场开放了!");
+                    }
 				};
 			});
 		}
@@ -222,6 +240,7 @@ namespace RG.Zeluda
 		}
 		public static void Tip(string msg)
 		{
+
 			UIManager uiManager = CBus.Instance.GetManager(ManagerName.UIManager) as UIManager;
 			TipPanel tip = uiManager.OpenPanel("TipPanel") as TipPanel;
 			tip.TipLog(msg);

@@ -36,6 +36,7 @@ public class ManagerBase
     public virtual void InitParams()
     {
 
+
     }
     /// <summary>
     /// 清理

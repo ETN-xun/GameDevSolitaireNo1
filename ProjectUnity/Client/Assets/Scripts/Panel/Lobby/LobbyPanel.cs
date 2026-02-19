@@ -31,4 +31,12 @@ public class LobbyPanel : PanelBase
 		GameManager gm = CBus.Instance.GetManager(ManagerName.GameManager) as GameManager;
 		gm.Start();
 	}
+	public void OnExitGameClick()
+	{
+#if UNITY_EDITOR
+		UnityEditor.EditorApplication.isPlaying = false;
+#else
+		Application.Quit();
+#endif
+    }
 }

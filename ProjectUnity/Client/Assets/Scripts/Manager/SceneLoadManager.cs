@@ -71,7 +71,8 @@ public class SceneLoadManager : ManagerBase
 		}
 		GameManager gm = CBus.Instance.GetManager(ManagerName.GameManager) as GameManager;
 		int day = Mathf.Clamp(gm.day - 1, 0, mapCA.prefab.Length - 1);
-		UIManager um = CBus.Instance.GetManager(ManagerName.UIManager) as UIManager;
+        //随着天数增加，地图会加载不同的预制体?
+        UIManager um = CBus.Instance.GetManager(ManagerName.UIManager) as UIManager;
 		um.OpenPanel(mapCA.prefab[day]);
 		//GameObject obj = Resources.Load<GameObject>(mapCA.prefab[day]);
 		//pfb_obj = GameObject.Instantiate(obj);

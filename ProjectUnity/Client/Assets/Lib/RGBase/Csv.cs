@@ -109,6 +109,7 @@ namespace RG.Basic {
 
             Text = Text.BatchReplace(new string[] { "\"\"", "\\n" }, new string[] { "\"", "\n" });
 
+
             list.Add(Text);
         }
 

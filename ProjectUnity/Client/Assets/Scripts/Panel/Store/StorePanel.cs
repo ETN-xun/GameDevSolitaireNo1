@@ -18,4 +18,7 @@ public class StorePanel : PanelBase
 	public void OnClickCancel()
 	{
 	}
+    public void OnClickClose()
+    {
+    }
 }

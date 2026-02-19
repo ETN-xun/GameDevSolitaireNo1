@@ -1,3 +1,4 @@
+using RG.Zeluda;
 using System;
 
 public class LevelManager : ManagerBase
@@ -17,16 +18,24 @@ public class LevelManager : ManagerBase
 
 		CurrentExp += amount;
 
-		while (CurrentExp >= GetRequiredExp() && Level < MaxLevel)
+        while (CurrentExp >= GetRequiredExp() && Level < MaxLevel)
 		{
 			CurrentExp -= GetRequiredExp();
 			Level++;
-			OnLevelUp?.Invoke(Level);
+
+            OnLevelUp?.Invoke(Level);
 		}
 
-		OnExpChanged?.Invoke(CurrentExp, GetRequiredExp());
-	}
+        OnExpChanged?.Invoke(CurrentExp, GetRequiredExp());
 
+
+    }
+
+	public void updateexp()
+	{
+        OnExpChanged?.Invoke(CurrentExp, GetRequiredExp());
+
+    }
 	public int GetRequiredExp()
 	{
 		return ExponentialFormula(Level);
