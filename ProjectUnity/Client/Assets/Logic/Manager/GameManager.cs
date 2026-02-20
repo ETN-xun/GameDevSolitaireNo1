@@ -21,6 +21,9 @@ namespace RG.Zeluda
 		public int[] prisonRooms = new int[4] { 1800002, 1800003, 1800004, 1800005 };
 		public int roomIdx = 0;
 		public int nextDayMapID = 0;
+		public int matchWinStreak = 0;
+		public bool matchStreakDialogShown = false;
+		private AudioClip horseLevelUpClip;
 		public void Start()
 		{
 			day = 1;
@@ -47,6 +50,10 @@ namespace RG.Zeluda
 
                         TipManager.Tip("马儿学会了新的技能！");
                     }
+					if (AudioManager.Inst != null)
+					{
+						AudioManager.Inst.Play(GetHorseLevelUpClip());
+					}
 				};
                 AssetManager am = CBus.Instance.GetManager(ManagerName.AssetManager) as AssetManager;
                 am.Add(1100003, 3);
@@ -244,6 +251,37 @@ namespace RG.Zeluda
 			UIManager uiManager = CBus.Instance.GetManager(ManagerName.UIManager) as UIManager;
 			TipPanel tip = uiManager.OpenPanel("TipPanel") as TipPanel;
 			tip.TipLog(msg);
+		}
+		private AudioClip GetHorseLevelUpClip()
+		{
+			if (horseLevelUpClip != null) { return horseLevelUpClip; }
+			AudioClip clip = Resources.Load<AudioClip>("BGM/马儿升级");
+			if (clip == null)
+			{
+				clip = GenerateHorseLevelUpClip();
+			}
+			horseLevelUpClip = clip;
+			return horseLevelUpClip;
+		}
+		private AudioClip GenerateHorseLevelUpClip()
+		{
+			int sampleRate = 44100;
+			float duration = 0.45f;
+			int samples = Mathf.CeilToInt(sampleRate * duration);
+			float[] data = new float[samples];
+			float startFreq = 880f;
+			float endFreq = 1320f;
+			for (int i = 0; i < samples; i++)
+			{
+				float t = i / (float)samples;
+				float freq = Mathf.Lerp(startFreq, endFreq, t);
+				float sample = Mathf.Sin(2f * Mathf.PI * freq * i / sampleRate);
+				float envelope = Mathf.Sin(Mathf.PI * t);
+				data[i] = sample * envelope * 0.25f;
+			}
+			AudioClip clip = AudioClip.Create("HorseLevelUpGenerated", samples, 1, sampleRate, false);
+			clip.SetData(data, 0);
+			return clip;
 		}
 	}
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using RG.Zeluda;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -70,6 +71,7 @@ public class MatchPanel : PanelBase
 
     public GameObject matchResultPanel; 
     public Text resultText;
+    public int[] expRewards = new int[] { 80, 50, 30, 20, 10 };
     class Horse
     {
         public string name;
@@ -94,8 +96,7 @@ public class MatchPanel : PanelBase
 
     void matchInit()
     {
-
-        LevelManager levelManager = CBus.Instance.GetManager(ManagerName.LevelManager) as LevelManager;
+        levelManager = CBus.Instance.GetManager(ManagerName.LevelManager) as LevelManager;
         foreach (var s in hoeSkills)
         {
             s.skillActive = false;
@@ -192,13 +193,46 @@ public class MatchPanel : PanelBase
         isRacing = false;
         UpdateRaceUI();
 
-        if (winner == "玩家")
+        List<Horse> ranked = GetRankedHorses();
+        if (ranked.Count > 0)
         {
-            ShowDialog(() => ShowMatchResultPanel(), "赛马胜利");
+            winner = ranked[0].name;
+        }
+        AwardExpByRanking(ranked);
+        bool playerWon = ranked.Count > 0 && ranked[0].isPlayer;
+        GameManager gm = CBus.Instance.GetManager(ManagerName.GameManager) as GameManager;
+        bool showStreakDialog = false;
+        if (gm != null)
+        {
+            if (playerWon)
+            {
+                gm.matchWinStreak++;
+                showStreakDialog = gm.matchWinStreak >= 3 && gm.matchStreakDialogShown == false;
+            }
+            else
+            {
+                gm.matchWinStreak = 0;
+                gm.matchStreakDialogShown = false;
+            }
+        }
+        if (playerWon)
+        {
+            ShowVictoryDialog(() =>
+            {
+                if (showStreakDialog && gm != null)
+                {
+                    gm.matchStreakDialogShown = true;
+                    ShowStreakDialog(ShowMatchResultPanel);
+                }
+                else
+                {
+                    ShowMatchResultPanel();
+                }
+            });
         }
         else
         {
-            ShowDialog(() => ShowMatchResultPanel(), "赛马失利");
+            ShowDefeatDialog(ShowMatchResultPanel);
         }
 
     }
@@ -391,6 +425,56 @@ public class MatchPanel : PanelBase
         if (resultText != null)
             resultText.text = $"比赛结束!\n胜者:{winner}";
         AudioManager.Inst.Play("BGM/新的一天开始");
+    }
+
+    private void ShowVictoryDialog(Action onComplete)
+    {
+        ShowDialog(onComplete, "赛马胜利");
+    }
+
+    private void ShowDefeatDialog(Action onComplete)
+    {
+        ShowDialog(onComplete, "赛马失利");
+    }
+
+    private void ShowStreakDialog(Action onClose)
+    {
+        UIManager um = CBus.Instance.GetManager(ManagerName.UIManager) as UIManager;
+        DialogPanel dp = um.OpenFloat("DialogPanel") as DialogPanel;
+        dp.ShowSimple("市长凯恩", "你已经连赢了三把了，只要你能输掉下一把，我就给你……（听不清了）", 1200002);
+        dp.OnCloseCallback = onClose;
+    }
+
+    private List<Horse> GetRankedHorses()
+    {
+        List<Horse> ranked = new List<Horse>(horses);
+        ranked.Sort((a, b) => b.position.CompareTo(a.position));
+        return ranked;
+    }
+
+    private int GetExpForRank(int rankIndex)
+    {
+        if (expRewards == null || expRewards.Length == 0) { return 0; }
+        int index = Mathf.Clamp(rankIndex, 0, expRewards.Length - 1);
+        return expRewards[index];
+    }
+
+    private void AwardExpByRanking(List<Horse> ranked)
+    {
+        if (ranked == null || ranked.Count == 0) { return; }
+        int playerRank = ranked.FindIndex(h => h.isPlayer);
+        if (playerRank < 0) { return; }
+        int exp = GetExpForRank(playerRank);
+        if (exp <= 0) { return; }
+        if (levelManager == null)
+        {
+            levelManager = CBus.Instance.GetManager(ManagerName.LevelManager) as LevelManager;
+        }
+        if (levelManager != null)
+        {
+            levelManager.AddExp(exp);
+            TipManager.Tip($"赛马排名第{playerRank + 1}，获得经验{exp}");
+        }
     }
 
 #endregion

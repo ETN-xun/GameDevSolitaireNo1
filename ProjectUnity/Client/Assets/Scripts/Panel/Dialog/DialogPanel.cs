@@ -21,6 +21,7 @@ public class DialogPanel : PanelBase
 	private string m_sentence;
 	public SpeakPronounce speak;
 	private bool isSimple = false;
+	private int simpleSpeakerId = 0;
 	public Action OnCallback;
 	public void StartDialog(DialogNode startNode)
 	{
@@ -43,10 +44,11 @@ public class DialogPanel : PanelBase
 		DisplayCurrentNode();
 		AudioManager.Inst.Play("BGM/对话框展开");
 	}
-	public void ShowSimple(string name, string sentence)
+	public void ShowSimple(string name, string sentence, int speakerId = 0)
 	{
 		lbl_name.text = name;
 		isSimple = true;
+		simpleSpeakerId = speakerId;
         m_sentence = sentence;
         typingCoroutine = StartCoroutine(TypeSentence(sentence));
 		AudioManager.Inst.Play("BGM/对话框展开");
@@ -107,10 +109,11 @@ public class DialogPanel : PanelBase
 	// 打字机效果的协程
 	private IEnumerator TypeSentence(string sentence)
 	{
-		if (currentNode.speakerid != 0)
+		int speakerId = isSimple ? simpleSpeakerId : currentNode.speakerid;
+		if (speakerId != 0)
 		{
 			CharacterFactory cf = CBus.Instance.GetFactory(FactoryName.CharacterFactory) as CharacterFactory;
-			CharacterCA cca = cf.GetCA(currentNode.speakerid) as CharacterCA;
+			CharacterCA cca = cf.GetCA(speakerId) as CharacterCA;
 			foreach (Transform c in tran_node)
 			{
 				Destroy(c.gameObject);
@@ -215,6 +218,41 @@ public class DialogPanel : PanelBase
 		if (isSimple == true) { Close(); return; }
 
 		currentTextIndex++;
+		DisplayCurrentNode();
+	}
+	public void SkipAll()
+	{
+		if (typingCoroutine != null)
+		{
+			StopCoroutine(typingCoroutine);
+			typingCoroutine = null;
+		}
+		if (isSimple == true)
+		{
+			Close();
+			return;
+		}
+		if (currentNode == null)
+		{
+			Close();
+			return;
+		}
+		if (currentNode.choices != null && currentNode.choices.Count > 0)
+		{
+			GameManager gm = CBus.Instance.GetManager(ManagerName.GameManager) as GameManager;
+			for (int i = 0; i < currentNode.choices.Count; i++)
+			{
+				DialogChoice choice = currentNode.choices[i];
+				if (gm == null || choice.IsChoiceAvailable(gm.bag))
+				{
+					currentNode = currentNode.GetOutputPort("nextNode " + i).Connection.node as DialogNode;
+					currentTextIndex = 0;
+					DisplayCurrentNode();
+					return;
+				}
+			}
+		}
+		currentTextIndex = currentNode.dialogText.Count;
 		DisplayCurrentNode();
 	}
 	public void LoadReward() {
