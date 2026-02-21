@@ -18,7 +18,7 @@ namespace RG.Zeluda
 		public Transform uiManager;
 		public WorkCA work;
 
-		public int[] prisonRooms = new int[4] { 1800002, 1800003, 1800004, 1800005 };
+		public int[] prisonRooms = new int[4] { 1800004, 1800002, 1800003, 1800005 };
 		public int roomIdx = 0;
 		public int nextDayMapID = 0;
 		public int matchWinStreak = 0;
